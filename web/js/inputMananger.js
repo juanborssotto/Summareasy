@@ -1,52 +1,116 @@
-var lastRecord = [];
+var undoID = [];
+
+var ids = {
+  id: 0,
+  currentIDChanged: function(id) {
+    undoID.push(id);
+  },
+  set currentID(id) {
+    this.id = id;
+    this.currentIDChanged(id);
+  },
+  get currentID() {
+    return this.id;
+  }
+};
+
 var titleColor = '#000000';
 
 var colsBootstrapGridPDF = 7;
 var colsBootstrapGridSummPage = 5;
 
+var keyCommands = ['q','w','e','u','t','a'];
+
 $(document).on('keypress', function(e) {
   var keyPressed = String.fromCharCode(e.which);
   var selectedText = window.getSelection().toString();
 
-  if(selectedText == '')
-    selectedText = 'Lorem Lorem Lorem Lorem Loren';
+  //Sólo para testear, sin tener que andar seleccionando texto.
+  /*if(selectedText == '')
+    selectedText = 'Testing testing testing testing ._.';*/
 
-  if(keyPressed == 'q' && selectedText.trim() != ''){
-    addLine(selectedText);	
+  if(selectedText.trim() == '')
+    return;
+
+  if(!keyCommands.includes(keyPressed))
+    return;
+
+  if(keyPressed == 'q'){
+    addLine(selectedText); 
   }
-  if(keyPressed == 'w' && selectedText.trim() != ''){
+  if(keyPressed == 'w'){
     addNewLine(selectedText);
   }
   if(keyPressed == 'e'){
-    undo(); 
+    addNewParagraph(selectedText);
   }
-  if(keyPressed == 't' && selectedText.trim() != ''){
-    addTitle(selectedText); 
+  if(keyPressed == 'u'){
+    undo();
+  }
+  if(keyPressed == 't'){
+    addTitle(selectedText);
+  }
+  if(keyPressed == 'a'){
+    addItemNumberedList(selectedText);
   }
 });
 
+addNewParagraph = function(t){
+  $('#summaryPage').append($('<br>'));
+  $('#summaryPage').append($('<div>',{text: t, id: ++ids.currentID}));
+  scrollBarToEnd('summaryPage');
+}
+
+addItemNumberedList = function(t){
+  //Si el último div contiene un <ol>, agrego el item en el mismo
+  if($('#summaryPage div:last ol').length == 1){
+    var li = $('<li>', {text: t, id: ++ids.currentID, class: 'numberedListItem'});
+    $('#summaryPage div:last ol').append(li);
+  }
+  else{
+    //Creo un nuevo ol
+    var div = $('<div>', {id: ++ids.currentID});
+    var ol = $('<ol>');
+    //La primera <li> no tiene id, para que el undo saque directamente el <div>
+    var li = $('<li>', {text: t, class: 'numberedListItem'});
+    ol.append(li);
+    div.append(ol);
+    $('#summaryPage').append(div);
+  }
+  scrollBarToEnd('summaryPage');
+}
+
 addLine = function(t){
-  var text = $('#summaryPage div:last').text();
-  if(text == '')
-    $('#summaryPage').append($('<div>',{text: t}));  
-  else
-    $('#summaryPage div:last').text(text + t);
+  var text = $('#summaryPage div:last').text().trim();
+  if(text == ''){
+    var div = $('<div>',{text: t, id: ++ids.currentID})
+    $('#summaryPage').append(div);
+  }
+  else{
+    var span = $('<span>',{text: t, id: ++ids.currentID});
+    $('#summaryPage div:last').append(span);
+  }
   scrollBarToEnd('summaryPage');
 }
 
 addNewLine = function(t){
-  $('#summaryPage').append($('<div>',{text: t}));
+  $('#summaryPage').append($('<div>',{text: t, id: ++ids.currentID}));
   scrollBarToEnd('summaryPage');
 }
 
 addTitle = function(t){
   $('#summaryPage').append($('<br>'));
-  $('#summaryPage').append($('<div>',{text: t, class: 'title', style: 'color:' + titleColor}));
+  $('#summaryPage').append($('<div>',{text: t, class: 'title', style: 'color:' + titleColor, id: ++ids.currentID}));
   scrollBarToEnd('summaryPage');
 }
 
 undo = function(){
-  $('#summaryPage div:last').remove();
+  var lastID = undoID.splice(-1,1)[0];
+  if(lastID == undefined)
+    return;
+  $('#' + lastID).remove();
+
+  //Si el último elemento de summaryPage es un <br>, lo borro
   var summPage = $('#summaryPage')[0];
   var summPageLastChild = summPage.lastChild;
   if(summPageLastChild != null && summPageLastChild.nodeName == 'BR')
@@ -54,40 +118,17 @@ undo = function(){
 }
 
 redo = function(){
-  //ToDo
-}
-
-//scrollBarToEnd: Bajar scrollbar del summary page hacia el final
-scrollBarToEnd = function(id){
-  var $object = $('#' + id);
-  $object.scrollTop($object[0].scrollHeight);
+  //TODO
 }
 
 copySummaryPageToClipboard = function(){
-    $("#summaryPage").selectText();
-    /*var e = jQuery.Event("keydown");
-    e.which = 67;
-    e.ctrlKey = true;
-    $('#body').append($('<'))
-    $("whatever").trigger(e);*/
+  $("#summaryPage").selectText();
+  document.execCommand('copy');
+  //Show toast to user
+  showSnackBar('Copied to clipboard');
+  window.getSelection().removeAllRanges();
+  $('body').focus();
 }
-
-jQuery.fn.selectText = function(){
-   var doc = document;
-   var element = this[0];
-   console.log(this, element);
-   if (doc.body.createTextRange) {
-       var range = document.body.createTextRange();
-       range.moveToElementText(element);
-       range.select();
-   } else if (window.getSelection) {
-       var selection = window.getSelection();        
-       var range = document.createRange();
-       range.selectNodeContents(element);
-       selection.removeAllRanges();
-       selection.addRange(range);
-   }
-};
 
 titleColorPickerChange = function(c){
   titleColor = c.value;
@@ -145,38 +186,3 @@ resizeSummPageRight = function(){
   $('#PDFContainer').addClass('col-md-' + colsBootstrapGridPDF);
   $('#PDFContainer').addClass('col-lg-' + colsBootstrapGridPDF);
 }
-
-//addLine = function(t){
-//  lastRecord.push($('#summaryPage').val());
-//  $('#summaryPage').val($('#summaryPage').val() + t);
-//  var $textarea = $('#summaryPage');
-//  $textarea.scrollTop($textarea[0].scrollHeight);
-//}
- 
-//addNewLine = function(t){
-//  lastRecord.push($('#summaryPage').val());
-//  if($('#summaryPage').val().trim() == '')
-//    $('#summaryPage').val(t);
-//  else
-//    $('#summaryPage').val($('#summaryPage').val() + '\n' + t);
-//  var $textarea = $('#summaryPage');
-//  $textarea.scrollTop($textarea[0].scrollHeight);
-//}
-
-//addTitle = function(t){
-//  t = t.toUpperCase();
-//  lastRecord.push($('#summaryPage').val());
-//  if($('#summaryPage').val().trim() == '')
-//    $('#summaryPage').val(t + '\n');
-//  else
-//    $('#summaryPage').val($('#summaryPage').val() + '\n\n' + t + '\n');
-//  var $textarea = $('#summaryPage');
-//  $textarea.scrollTop($textarea[0].scrollHeight);
-//}
-
-//undo = function(){
-//  var index = lastRecord.length - 1;
-//  $('#summaryPage').val(lastRecord[index]);
-//  lastRecord.splice(index, 1);
-//  console.log(lastRecord);
-//}

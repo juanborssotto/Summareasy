@@ -57,9 +57,11 @@ See https://github.com/adobe-type-tools/cmap-resources
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="bootstrap.3.3.7/content/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="css/inputMananger.css">
+  <link rel="stylesheet" type="text/css" href="css/util.css">
   <script src="viewer.js"></script>
   <script src="js/jquery-3.3.1.js"></script>
   <script src="js/inputMananger.js"></script>
+  <script src="js/util.js"></script>
 
   <!--#else-->
   <!--#include viewer-snippet-minified.html-->
@@ -67,7 +69,7 @@ See https://github.com/adobe-type-tools/cmap-resources
 
 </head>
 <body tabindex="1" class="loadingInProgress">
-  <div class="row" style="height: 100%;">
+  <div class="row" id="pageContainer">
    <div id="PDFContainer" class="col-7 col-sm-7 col-md-7 col-lg-7 height-100">
     <div id="outerContainer">
       <div id="sidebarContainer">
@@ -418,17 +420,36 @@ See https://github.com/adobe-type-tools/cmap-resources
     <div class="row" style="height: 100%;">
       <div id="summaryPage" class="col-10 col-sm-10 col-md-10 col-lg-10 summaryPage" contenteditable="true"></div>
       <div class="col-1 col-sm-1 col-md-1 col-lg-1 sideBar">
-        <i class="glyphicon glyphicon-text-color sideBarIcon">
+        <i class="glyphicon glyphicon-text-color sideBarIcon mytooltip">
           <input id="titleColorPicker" type="color" value="#ff0000" style="opacity:0; position:absolute; left:0;top:0;width:100%" onchange="titleColorPickerChange(this)"/>
+          <span class="mytooltiptext">Title Color</span>
         </i>
-        <i class="glyphicon glyphicon-th sideBarIcon" onclick="copySummaryPageToClipboard()"></i>
-        <i class="glyphicon glyphicon-arrow-left sideBarIcon" onclick="resizeSummPageLeft()"></i>
-        <i class="glyphicon glyphicon-arrow-right sideBarIcon" onclick="resizeSummPageRight()"></i>
+        <i id = "icopyToClipBoard" class="glyphicon glyphicon-th sideBarIcon mytooltip" onclick="copySummaryPageToClipboard()">
+          <span class="mytooltiptext">Copy to Clipboard</span>
+        </i>
+        <i class="glyphicon glyphicon-arrow-left sideBarIcon mytooltip" onclick="resizeSummPageLeft()">
+          <span class="mytooltiptext">Move left</span>
+        </i>
+        <i class="glyphicon glyphicon-arrow-right sideBarIcon mytooltip" onclick="resizeSummPageRight()">
+          <span class="mytooltiptext">Move right</span>
+        </i>
+        <i class="glyphicon glyphicon-question-sign sideBarIcon mytooltip">
+          <span class="mytooltiptext" id="mytooltiptextcommands">
+              q: Same Line<br>
+              w: New Line<br>
+              e: Paragraph<br>
+              t: Title<br>
+              u: Undo<br>
+              a: Item List<br>
+          </span>
+        </i>
         <div style="position:relative; display:inline-block">
         </div>
       </div>
     </div>
   </div>
 </div>
+<!-- Snackbard is used to show toast to user -->
+<div id="snackbar"></div>
 </body>
 </html>
