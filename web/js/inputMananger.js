@@ -99,7 +99,10 @@ addNewLine = function(t){
 }
 
 addTitle = function(t){
-  $('#summaryPage').append($('<br>'));
+  //Si no es el primer título, le agrego un <br>.
+  if($('#summaryPage').html().trim() != ''){
+    $('#summaryPage').append($('<br>'));
+  }
   $('#summaryPage').append($('<div>',{text: t, class: 'title', style: 'color:' + titleColor, id: ++ids.currentID}));
   scrollBarToEnd('summaryPage');
 }
