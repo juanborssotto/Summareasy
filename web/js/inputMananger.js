@@ -29,7 +29,8 @@ $(document).on('keypress', function(e) {
   /*if(selectedText == '')
     selectedText = 'Testing testing testing testing ._.';*/
 
-  if(selectedText.trim() == '')
+  //No lo dejo pasar si el texto está vacío y la tecla no es la de undo
+  if(selectedText.trim() == '' && keyPressed != 'u')
     return;
 
   if(!keyCommands.includes(keyPressed))
